@@ -1,0 +1,54 @@
+name: Deploy to Raspberry Pi DEV
+
+on:
+  push:
+    branches:
+      - dev
+
+  workflow_dispatch: # Déclenchement manuel
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment: dev
+
+    steps:
+      # Checkout le code de la branche
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Injecter le fichier .env via un secret
+      - name: Create .env file
+        run: echo "${{ secrets.LARAVEL_ENV }}" > .env
+
+      # Copier l'image dans le serveur de dev
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          port: ${{ secrets.PI_SSH_PORT }}
+          rm: true
+          source: "*"
+          target: /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/
+
+
+      # Decompresser l'image dans le serveur de dev
+      - name: executing remote ssh commands using ssh-key
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PI_HOST }}
+          username: ${{ secrets.PI_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          port: ${{ secrets.PI_SSH_PORT }}
+          command_timeout: 30m
+          script: |
+              cd /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/
+              docker container rm -f poc-ll-api
+              docker rmi technostrea/poc-ll-api:stabe-alpine -f
+              echo "# Building the docker image"
+              docker build -t technostrea/poc-ll-api:stabe-alpine .
+              echo "# Suppression du dossier"
+              rm -rf /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/
