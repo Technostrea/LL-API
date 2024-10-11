@@ -46,9 +46,9 @@ jobs:
           command_timeout: 30m
           script: |
               cd /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/
-              docker container rm -f poc-ll-api
-              docker rmi technostrea/poc-ll-api:stabe-alpine -f
+              docker container rm -f ll-api
+              docker rmi technostrea/ll-api:stabe-alpine -f
               echo "# Building the docker image"
-              docker build -t technostrea/poc-ll-api:stabe-alpine .
+              docker build -t technostrea/ll-api:stabe-alpine .
               echo "# Suppression du dossier"
               rm -rf /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/
