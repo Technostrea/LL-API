@@ -41,7 +41,7 @@ RUN php artisan config:cache \
 FROM nginx:alpine AS production
 
 # Copier la configuration Nginx
-COPY ./nginx.conf /etc/nginx/conf.d
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copier les fichiers Laravel construits
 COPY --from=build /var/www /var/www
