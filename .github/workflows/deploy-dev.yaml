@@ -47,8 +47,8 @@ jobs:
           script: |
               cd /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/
               docker container rm -f ll-api
-              docker rmi technostrea/ll-api:stabe-alpine -f
+              docker rmi technostrea/ll-api:stable-alpine -f
               echo "# Building the docker image"
-              docker build -t technostrea/ll-api:stabe-alpine .
+              docker build -t technostrea/ll-api:stable-alpine .
               echo "# Suppression du dossier"
               rm -rf /home/${{ secrets.PI_USER }}/Documents/poc-projects/poc-ll-api/

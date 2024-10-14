@@ -36,31 +36,6 @@ RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
-
-# Étape 2 : Serveur Nginx (Alpine)
-FROM nginx:alpine AS production
-
-# Installer bash pour le script d'entrée
-RUN apk add --no-cache bash
-
-# Copier la configuration Nginx
-COPY --from=build /var/www/nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copier les fichiers Laravel construits
-COPY --from=build /var/www /var/www
-
-# Ajouter un script d'entrée pour lancer PHP-FPM et Nginx
-COPY --from=build /var/www/docker-entrypoint.sh /usr/local/bin/
-
-# Donner les droits d'exécution au script
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Assurer les permissions pour le stockage et les caches
-RUN chown -R nginx:nginx /var/www \
-    && chmod -R 755 /var/www/storage
-
-# Exposer le port Nginx
-EXPOSE 80 9000
-
-# Utiliser le script d'entrée pour démarrer les deux services
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Expose port 9000 and start php-fpm server
+EXPOSE 9000
+CMD ["php-fpm"]
