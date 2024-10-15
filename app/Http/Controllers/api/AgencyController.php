@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Filters\EmailFilter;
-use App\Http\Filters\NameFilter;
 use App\Http\Requests\AgencyStoreRequest;
 use App\Http\Requests\AgencyUpdateRequest;
+use App\Http\Resources\AgencyCollection;
 use App\Models\Agency;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Pipeline;
+use Illuminate\Pipeline\Pipeline;
 use Symfony\Component\HttpFoundation\Response;
 
 class AgencyController extends Controller
@@ -20,17 +19,22 @@ class AgencyController extends Controller
     public function index(): JsonResponse
     {
         $pipelines = [
-            NameFilter::class,
-            EmailFilter::class,
-            // TODO Add NumberPhoneFilter::class
+            //     NameFilter::class,
+            //     EmailFilter::class,
         ];
-        $agencies = Pipeline::of(Agency::query())
+        $agencies = app(Pipeline::class)
+            ->send(Agency::query())
             ->through($pipelines)
             ->thenReturn()
-            ->paginate(per_page: request('limit', 10));
+            ->filterByName(request('name'))
+            ->filterByEmail(request('email'))
+            ->filterByPhone(request('phone'))
+            ->orderBy('created_at', 'desc')
+            ->paginate(request('limit', 10));
 
-        return $this->successResponse(
+        return $this->successResponseWithPagination(
             data: $agencies,
+            resourceData: new AgencyCollection($agencies),
             message: 'Agencies retrieved successfully.'
         );
     }

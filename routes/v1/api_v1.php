@@ -13,30 +13,31 @@ Route::group([
     'prefix' => 'v1'
 ], function () {
 
-    Route::middleware([
-        'auth:sanctum',
-        'verified'
-    ])->group(function () {
+    Route::middleware(
+        app()->environment(['local', 'dev']) ?
+            [] :
+            ['auth:sanctum', 'verified']
+    )->group(function () {
 
         // Users route
-        Route::get('/users', [UserController::class, 'index'])
-            ->middleware('role:admin')
-            ->name('users.index');
-        Route::post('/users/{id}/assign-role', [UserController::class, 'assignRole'])
-            ->middleware('role:admin')
-            ->name('users.assign-role');
-        Route::post('/users/{id}/revoke-role', [UserController::class, 'revokeRole'])
-            ->middleware('role:admin')
-            ->name('users.revoke-role');
-        Route::get('/users/{id}', [UserController::class, 'show'])
-            ->middleware('role:admin')
-            ->name('users.show');
-        Route::put('/users/{id}', [UserController::class, 'update'])
-            ->middleware(['role:admin'])
-            ->name('users.update');
-        Route::delete('/users/{id}', [UserController::class, 'destroy'])
-            ->middleware('role:admin')
-            ->name('users.destroy');
+        Route::middleware(
+            app()->environment(['local', 'dev']) ?
+                [] :
+                ['role:admin']
+        )->group(function () {
+            Route::get('/users', [UserController::class, 'index'])
+                ->name('users.index');
+            Route::post('/users/{id}/assign-role', [UserController::class, 'assignRole'])
+                ->name('users.assign-role');
+            Route::post('/users/{id}/revoke-role', [UserController::class, 'revokeRole'])
+                ->name('users.revoke-role');
+            Route::get('/users/{id}', [UserController::class, 'show'])
+                ->name('users.show');
+            Route::put('/users/{id}', [UserController::class, 'update'])
+                ->name('users.update');
+            Route::delete('/users/{id}', [UserController::class, 'destroy'])
+                ->name('users.destroy');
+        });
         Route::post('/logout', [UserController::class, 'logout']);
         Route::get('/me', [UserController::class, 'me']);
 
@@ -126,22 +127,26 @@ Route::group([
         // Supprimer une conversation
 
         // Agencies routes
-        Route::get('/agencies', [AgencyController::class, 'index'])
-            ->middleware('role:admin')
-            ->name('agencies.index');
-        Route::post('/agencies', [AgencyController::class, 'store'])
-            ->middleware('role:admin')
-            ->name('agencies.store');
-        Route::get('/agencies/{id}', [AgencyController::class, 'show'])
-            ->middleware('role:admin')
-            ->name('agencies.show');
-        Route::put('/agencies/{id}', [AgencyController::class, 'update'])
-            ->middleware('role:admin')
-            ->name('agencies.update');
-        Route::delete('/agencies/{id}', [AgencyController::class, 'destroy'])
-            ->middleware('role:admin')
-            ->name('agencies.destroy');
-
+        Route::middleware(
+            app()->environment(['local', 'dev']) ?
+                [] :
+                ['role:admin']
+        )->group(function () {
+            Route::get('/agencies', [AgencyController::class, 'index'])
+                ->name('agencies.index');
+            Route::post('/agencies', [AgencyController::class, 'store'])
+                ->middleware('role:admin')
+                ->name('agencies.store');
+            Route::get('/agencies/{id}', [AgencyController::class, 'show'])
+                ->middleware('role:admin')
+                ->name('agencies.show');
+            Route::put('/agencies/{id}', [AgencyController::class, 'update'])
+                ->middleware('role:admin')
+                ->name('agencies.update');
+            Route::delete('/agencies/{id}', [AgencyController::class, 'destroy'])
+                ->middleware('role:admin')
+                ->name('agencies.destroy');
+        });
     });
 
     // Public properties routes
@@ -150,5 +155,3 @@ Route::group([
 
     require __DIR__ . '/auth.php';
 });
-
-
