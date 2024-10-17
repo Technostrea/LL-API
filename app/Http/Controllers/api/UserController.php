@@ -66,13 +66,14 @@ class UserController extends Controller
         $pipelines = [
             NameFilter::class,
             EmailFilter::class,
-            // TODO Add NumberPhoneFilter::class
         ];
 
         $users = Pipeline::send(User::query())
             ->through($pipelines)
             ->thenReturn()
+            ->with(['properties','favorites','agencies'])
             ->paginate($request->limit ?? 10);
+
         return $this->successResponse(
             data: new UserCollection($users),
             message: 'Users retrieved successfully.'

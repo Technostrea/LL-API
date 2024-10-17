@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyRequest;
+use App\Http\Resources\PropertyCollection;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,10 +19,20 @@ class PropertyController extends Controller
      */
     public function index(): JsonResponse
     {
-        $properties = Property::all();
-        return $this->successResponse(
+        $properties = Property::filterByStatus(request('status'))
+            ->filterByPriceRange(request('min_price'), request('max_price'))
+            ->filterByCity(request('city'))
+            ->filterByType(request('property_type'))
+            ->filterByAreaRange(request('min_area'), request('max_area'))
+            ->nearLocation(request('latitude'), request('longitude'), request('radius'))
+            ->with('images')
+            ->paginate(request('limit', 10));
+
+        return $this->successResponseWithPagination(
             data: $properties,
-            message: 'Properties retrieved successfully');
+            resourceData: new PropertyCollection($properties),
+            message: 'Properties retrieved successfully'
+        );
     }
 
     /**
@@ -35,7 +46,8 @@ class PropertyController extends Controller
         return $this->successResponse(
             data: $property,
             message: 'Property created successfully',
-            status: 201);
+            status: 201
+        );
     }
 
     /**
@@ -47,11 +59,13 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: 404);
+                status: 404
+            );
         }
         return $this->successResponse(
             data: $property,
-            message: 'Property retrieved successfully');
+            message: 'Property retrieved successfully'
+        );
     }
 
     /**
@@ -63,12 +77,14 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: 404);
+                status: 404
+            );
         }
         if ($property->user_id !== Auth::id()) {
             return $this->errorResponse(
                 message: 'Unauthorized',
-                status: 401);
+                status: 401
+            );
         }
         $validator = Validator::make($request->all(), [
             'title' => 'string|max:255',
@@ -88,12 +104,14 @@ class PropertyController extends Controller
             return $this->errorResponse(
                 message: 'Validation error',
                 errorMessages: $validator->errors()->all(),
-                status: 422);
+                status: 422
+            );
         }
         $property->update($request->all());
         return $this->successResponse(
             data: $property,
-            message: 'Property updated successfully');
+            message: 'Property updated successfully'
+        );
     }
 
     /**
@@ -105,17 +123,20 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: 404);
+                status: 404
+            );
         }
         if ($property->user_id !== Auth::id()) {
             return $this->errorResponse(
                 message: 'Unauthorized',
-                status: 401);
+                status: 401
+            );
         }
         $property->delete();
         return $this->successResponse(
             data: null,
-            message: 'Property deleted successfully');
+            message: 'Property deleted successfully'
+        );
     }
 
     /**
@@ -126,7 +147,8 @@ class PropertyController extends Controller
         $properties = Property::where('user_id', (int)Auth::id())->get();
         return $this->successResponse(
             data: $properties,
-            message: 'Properties retrieved successfully');
+            message: 'Properties retrieved successfully'
+        );
     }
 
     /**
@@ -138,12 +160,14 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: 404);
+                status: 404
+            );
         }
         if ($property->user_id !== Auth::id()) {
             return $this->errorResponse(
                 message: 'Unauthorized',
-                status: 401);
+                status: 401
+            );
         }
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -152,7 +176,8 @@ class PropertyController extends Controller
             return $this->errorResponse(
                 message: 'Validation error',
                 errorMessages: $validator->errors()->all(),
-                status: 422);
+                status: 422
+            );
         }
         $imageName = time() . '_' . trim(str_replace(" ", "_", $request->file('image')->getClientOriginalName()));
         $imageUrl = $request->file('image')->storeAs('images', $imageName, 's3');
@@ -162,7 +187,8 @@ class PropertyController extends Controller
         return $this->successResponse(
             data: $property,
             message: 'Image uploaded successfully',
-            status: Response::HTTP_CREATED);
+            status: Response::HTTP_CREATED
+        );
     }
 
     /**
@@ -174,23 +200,27 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: Response::HTTP_NOT_FOUND);
+                status: Response::HTTP_NOT_FOUND
+            );
         }
         if ($property->user_id !== Auth::id()) {
             return $this->errorResponse(
                 message: 'Unauthorized',
-                status: Response::HTTP_UNAUTHORIZED);
+                status: Response::HTTP_UNAUTHORIZED
+            );
         }
         $image = $property->images()->find($imageId);
         if (!$image) {
             return $this->errorResponse(
                 message: 'Image not found',
-                status: 404);
+                status: 404
+            );
         }
         $image->delete();
         return $this->successResponse(
             data: null,
-            message: 'Image deleted successfully');
+            message: 'Image deleted successfully'
+        );
     }
 
     /**
@@ -201,7 +231,8 @@ class PropertyController extends Controller
         $properties = Auth::user()->favorites;
         return $this->successResponse(
             data: $properties,
-            message: 'Favorites retrieved successfully');
+            message: 'Favorites retrieved successfully'
+        );
     }
 
     /**
@@ -214,18 +245,21 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: 404);
+                status: 404
+            );
         }
         if ($user->favorites()->where('property_id', $property_id)->exists()) {
             return $this->errorResponse(
                 message: 'Property is already in favorites.',
-                status: Response::HTTP_CONFLICT);
+                status: Response::HTTP_CONFLICT
+            );
         }
         $user->favorites()->attach($property_id);
         return $this->successResponse(
             data: null,
             message: 'Property added to favorites successfully.',
-            status: 201);
+            status: 201
+        );
     }
 
     /**
@@ -239,20 +273,22 @@ class PropertyController extends Controller
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
-                status: 404);
+                status: 404
+            );
         }
 
         if (!$user->favorites()->where('property_id', $property_id)->exists()) {
             return $this->errorResponse(
                 message: 'Property not found in favorites',
-                status: Response::HTTP_NOT_FOUND);
+                status: Response::HTTP_NOT_FOUND
+            );
         }
 
         $user->favorites()->detach($property_id);
 
         return $this->successResponse(
             data: null,
-            message: 'Property removed from favorites successfully');
+            message: 'Property removed from favorites successfully'
+        );
     }
-
 }
