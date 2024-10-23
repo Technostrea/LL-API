@@ -1,0 +1,470 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Louka-Loca API",
+        "description": "api a destination des clients mobile et web",
+        "termsOfService": "https://louka-loca.com/tos",
+        "contact": {
+            "email": "contact@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://louka-loca.com"
+        },
+        "version": "0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "API Server Louka-Loca"
+        },
+        {
+            "url": "https://louka-loca.com",
+            "description": "API Server Louka-Loca"
+        }
+    ],
+    "paths": {
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Handle an incoming authentication request.",
+                "description": "Authenticate a user.",
+                "operationId": "login",
+                "requestBody": {
+                    "description": "User credentials.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "LoginRequest",
+                                "title": "LoginRequest",
+                                "properties": {
+                                    "email": {
+                                        "description": "User email.",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "User password.",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content."
+                    },
+                    "422": {
+                        "description": "Validation error."
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Destroy an authenticated session.",
+                "description": "Destroy an authenticated session.",
+                "operationId": "destroy",
+                "responses": {
+                    "204": {
+                        "description": "No content."
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Handle an incoming new password request.",
+                "description": "Reset a user password.",
+                "operationId": "resetPassword",
+                "requestBody": {
+                    "description": "User password.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "NewPasswordRequest",
+                                "title": "NewPasswordRequest",
+                                "properties": {
+                                    "token": {
+                                        "description": "Password reset token.",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "User email.",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "User password.",
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "description": "User password confirmation.",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset."
+                    },
+                    "422": {
+                        "description": "Validation error."
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Handle an incoming password reset link request.",
+                "description": "Send a password reset link to a user.",
+                "operationId": "passwordResetLink",
+                "requestBody": {
+                    "description": "User email.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "PasswordResetLinkRequest",
+                                "title": "PasswordResetLinkRequest",
+                                "properties": {
+                                    "email": {
+                                        "description": "User email.",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset link sent."
+                    },
+                    "422": {
+                        "description": "Validation error."
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Handle an incoming registration request.",
+                "description": "Register a new user.",
+                "operationId": "register",
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "default": "application/json"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "User data.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "RegisterUserRequest",
+                                "title": "RegisterUserRequest",
+                                "properties": {
+                                    "name": {
+                                        "description": "User name.",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "User email.",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "User password.",
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "description": "User password confirmation.",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content."
+                    },
+                    "422": {
+                        "description": "Validation error."
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/verify-email/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Mark the authenticated user's email address as verified.",
+                "description": "Verify a user email.",
+                "operationId": "verifyEmail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "User ID.",
+                        "required": true
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "User hash.",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect."
+                    }
+                }
+            }
+        },
+        "/api/properties": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Display a listing of the resource.",
+                "description": "Retrieve all properties.",
+                "operationId": "getAllProperties",
+                "responses": {
+                    "200": {
+                        "description": "Properties retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Display a listing of the resource.",
+                "description": "Get all users.",
+                "operationId": "index",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Name of the user.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "Email of the user.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Not found."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Display the specified resource.",
+                "description": "Get a user by ID.",
+                "operationId": "show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the user to get.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Not found."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update the specified resource in storage.",
+                "description": "Update a user by ID.",
+                "operationId": "update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the user to update.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "User data to update.",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Not found."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "basic": {
+                "type": "http",
+                "scheme": "basic"
+            },
+            "sanctum": {
+                "type": "http",
+                "description": "Sanctum Token",
+                "flows": {
+                    "password": {
+                        "authorizationUrl": "https://louka-loca.com/oauth/authorize",
+                        "tokenUrl": "https://louka-loca.com/oauth/token",
+                        "refreshUrl": "https://louka-loca.com/oauth/token/refresh",
+                        "scopes": {
+                            "read:users": "read users",
+                            "write:users": "write users"
+                        }
+                    }
+                },
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "User",
+            "description": "Operations about user"
+        },
+        {
+            "name": "Properties",
+            "description": "Operations about properties"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        }
+    ]
+}

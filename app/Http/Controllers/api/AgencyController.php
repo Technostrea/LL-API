@@ -11,12 +11,55 @@ use App\Models\Agency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Pipeline;
 use Symfony\Component\HttpFoundation\Response;
+use OpenApi\Attributes as OA;
 
 class AgencyController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    #[OA\Get(
+        path: '/api/v1/agencies',
+        operationId: 'getAgencies',
+        description: 'Get all agencies.',
+        security: [['sanctum' => []]],
+        tags: ['Agencies'],
+        parameters: [
+            new OA\Parameter(
+                name: 'page',
+                description: 'Page number.',
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: 'integer'),
+            ),
+            new OA\Parameter(
+                name: 'limit',
+                description: 'Items per page.',
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: 'integer'),
+            ),
+            new OA\Parameter(
+                name: 'name',
+                description: 'Name of the user.',
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: 'string'),
+            ),
+            new OA\Parameter(
+                name: 'email',
+                description: 'Email of the user.',
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        responses: [
+            new OA\Response(response: '200', description: 'Agencies retrieved successfully.'),
+            new OA\Response(response: '401', description: 'Unauthorized.'),
+            new OA\Response(response: '404', description: 'Not found.'),
+        ]
+    )]
     public function index(): JsonResponse
     {
         $pipelines = [
@@ -38,6 +81,28 @@ class AgencyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    #[
+        OA\Post(
+            path: '/api/v1/agencies',
+            operationId: 'createAgency',
+            description: 'Create a new agency.',
+            security: [['sanctum' => []]],
+            tags: ['Agencies'],
+            requestBody: new OA\RequestBody(
+                description: 'Details of the agency to be created.',
+                required: true,
+            ),
+            responses: [
+                new OA\Response(
+                    response: 201,
+                    description: 'Agency created successfully.',
+                ),
+                new OA\Response(response: 401, description: 'Unauthorized'),
+                new OA\Response(response: 422, description: 'Validation error'),
+            ]
+        )
+    ]
+
     public function store(AgencyStoreRequest $request): JsonResponse
     {
         $agency = Agency::create($request->validated());
@@ -52,6 +117,26 @@ class AgencyController extends Controller
     /**
      * Display the specified resource.
      */
+    #[OA\Get(
+        path: '/api/v1/agencies/{id}',
+        operationId: 'getAgencyById',
+        description: 'Get a agency by ID.',
+        security: [['sanctum' => []]],
+        tags: ['Agencies'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'ID of the agency to get.',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            )
+        ],
+        responses: [
+            new OA\Response(response: '200', description: 'Agency retrieved successfully.'),
+            new OA\Response(response: '404', description: 'Agency not found.')
+        ]
+    )]
     public function show(string $id): JsonResponse
     {
         $agency = Agency::find($id);
@@ -70,6 +155,37 @@ class AgencyController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    #[
+        OA\Put(
+            path: '/api/v1/agencies/{id}',
+            operationId: 'updateAgency',
+            description: 'Update the details of an existing agency.',
+            security: [['sanctum' => []]],
+            tags: ['Agencies'],
+            parameters: [
+                new OA\Parameter(
+                    name: 'id',
+                    description: 'ID of the agency to update.',
+                    in: 'path',
+                    required: true,
+                    schema: new OA\Schema(type: 'string')
+                )
+            ],
+            requestBody: new OA\RequestBody(
+                description: 'Updated details of the agency.',
+                required: true,
+            ),
+            responses: [
+                new OA\Response(
+                    response: 200,
+                    description: 'Agency updated successfully.',
+                ),
+                new OA\Response(response: 404, description: 'Agency not found.'),
+                new OA\Response(response: 401, description: 'Unauthorized'),
+                new OA\Response(response: 422, description: 'Validation error'),
+            ]
+        )
+    ]
     public function update(AgencyUpdateRequest $request, string $id): JsonResponse
     {
         $agency = Agency::find($id);
@@ -90,6 +206,26 @@ class AgencyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    #[OA\Delete(
+        path: '/api/v1/agencies/{id}',
+        operationId: 'deleteAgency',
+        description: 'Delete a agency by ID.',
+        security: [['sanctum' => []]],
+        tags: ['Agencies'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'ID of the agency to delete.',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            )
+        ],
+        responses: [
+            new OA\Response(response: '200', description: 'Agency  delete successfully.'),
+            new OA\Response(response: '404', description: 'Not found.'),
+        ]
+    )]
     public function destroy(string $id): JsonResponse
     {
         $agency = Agency::find($id);

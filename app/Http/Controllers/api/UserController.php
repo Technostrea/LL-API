@@ -192,6 +192,21 @@ class UserController extends Controller
     /**
      * Logout the user.
      */
+    #[
+        OA\Post(
+            path: '/api/v1/logout',
+            operationId: 'logoutUser',
+            description: 'Log the user out and delete their tokens.',
+            security: [['sanctum' => []]],
+            tags: ['User'],
+            responses: [
+                new OA\Response(
+                    response: 200,
+                    description: 'User logged out successfully.'
+                )
+            ]
+        )
+    ]
     public function logout(Request $request): JsonResponse
     {
         $request->user()->tokens()->delete();
@@ -204,6 +219,21 @@ class UserController extends Controller
     /**
      * Get the authenticated user.
      */
+    #[
+        OA\Get(
+            path: '/api/v1/me',
+            operationId: 'getAuthenticatedUser',
+            description: 'Get the authenticated user.',
+            security: [['sanctum' => []]],
+            tags: ['User'],
+            responses: [
+                new OA\Response(
+                    response: 200,
+                    description: 'User retrieved successfully.',
+                )
+            ]
+        )
+    ]
     public function me(Request $request): JsonResponse
     {
         return $this->successResponse(
@@ -215,6 +245,40 @@ class UserController extends Controller
     /**
      * Assign role to user.
      */
+    #[
+        OA\Post(
+            path: '/api/v1/users/{id}/assign-role',
+            operationId: 'assignRoleToUser',
+            description: 'Assign a role to the specified user.',
+            security: [['sanctum' => []]],
+            tags: ['User'],
+            parameters: [
+                new OA\Parameter(
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    description: 'ID of the user to assign a role.',
+                )
+            ],
+            requestBody: new OA\RequestBody(
+                required: true,
+            ),
+            responses: [
+                new OA\Response(
+                    response: 200,
+                    description: 'Role assigned successfully.',
+                ),
+                new OA\Response(
+                    response: 404,
+                    description: 'User not found.',
+                ),
+                new OA\Response(
+                    response: 400,
+                    description: 'Validation error.',
+                )
+            ]
+        )
+    ]
     public function assignRole(string $id, Request $request): JsonResponse
     {
         $user = User::find($id);
@@ -244,6 +308,40 @@ class UserController extends Controller
     /**
      * Revoke role from user.
      */
+    #[
+        OA\Post(
+            path: '/api/v1/users/{id}/revoke-role',
+            operationId: 'revokeRoleFromUser',
+            description: 'Revoke a role from the specified user.',
+            security: [['sanctum' => []]],
+            tags: ['User'],
+            parameters: [
+                new OA\Parameter(
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    description: 'ID of the user to revoke a role.',
+                )
+            ],
+            requestBody: new OA\RequestBody(
+                required: true,
+            ),
+            responses: [
+                new OA\Response(
+                    response: 200,
+                    description: 'Role revoked successfully.',
+                ),
+                new OA\Response(
+                    response: 404,
+                    description: 'User not found.',
+                ),
+                new OA\Response(
+                    response: 400,
+                    description: 'Validation error.',
+                )
+            ]
+        )
+    ]
     public function revokeRole(string $id, Request $request): JsonResponse
     {
         $user = User::find($id);
@@ -269,5 +367,4 @@ class UserController extends Controller
             message: 'Role revoked successfully.'
         );
     }
-
 }
