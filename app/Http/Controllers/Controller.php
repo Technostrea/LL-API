@@ -119,18 +119,18 @@ abstract class Controller
         if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             // Ajout des détails de la pagination
             $response['pagination'] = [
-                'current_page' => $data->currentPage() || $resourceData->currentPage(),
-                'first_page_url' => $data->url(1),
-                'from' => $data->firstItem(),
-                'last_page' => $data->lastPage(),
-                'last_page_url' => $data->url($data->lastPage()),
-                'next_page_url' => $data->nextPageUrl(),
-                'path' => $data->path(),
-                'per_page' => $data->perPage(),
-                'prev_page_url' => $data->previousPageUrl(),
-                'to' => $data->lastItem(),
-                'total' => $data->total(),
-                'total_pages' => ceil($data->total() / $data->perPage()),
+                'current_page' => $data->currentPage(), // Numéro de la page actuelle
+                'first_page_url' => $data->url(1), // URL de la première page
+                'from' => $data->firstItem(), // Premier élément de la page actuelle
+                'last_page' => $data->lastPage(), // Numéro de la dernière page
+                'last_page_url' => $data->url($data->lastPage()), // URL de la dernière page
+                'next_page_url' => $data->nextPageUrl(), // URL de la page suivante, ou null si c'est la dernière page
+                'path' => $data->path(), // Chemin de base utilisé pour la pagination (sans le paramètre de la page)
+                'per_page' => $data->perPage(), // Nombre d'éléments par page
+                'prev_page_url' => $data->previousPageUrl(), // URL de la page précédente, ou null si c'est la première page
+                'to' => $data->lastItem(), // Dernier élément de la page actuelle
+                'total' => $data->total(), // Nombre total d'éléments disponibles
+                'total_pages' => ceil($data->total() / $data->perPage()), // Nombre total de pages, calculé en divisant le total des éléments par le nombre d'éléments par page
             ];
         }
         return response()->json($response, $status);

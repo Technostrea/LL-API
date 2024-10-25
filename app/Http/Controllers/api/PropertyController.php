@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyRequest;
 use App\Http\Resources\PropertyCollection;
+use App\Http\Resources\PropertyResource;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,8 +43,8 @@ class PropertyController extends Controller
 
         return $this->successResponseWithPagination(
             data: $properties,
-            resourceData: new PropertyCollection($properties),
-            message: 'Properties retrieved successfully'
+            message: 'Properties retrieved successfully',
+            resourceData: new PropertyCollection($properties)
         );
     }
 
@@ -77,7 +78,7 @@ class PropertyController extends Controller
             'user_id' => Auth::id(),
         ]));
         return $this->successResponse(
-            data: $property,
+            data: new PropertyResource($property),
             message: 'Property created successfully',
             status: 201
         );
@@ -108,7 +109,9 @@ class PropertyController extends Controller
     )]
     public function show(string $id): JsonResponse
     {
-        $property = Property::find($id);
+        $property = Property::query()
+            ->with('images')
+            ->find($id);
         if (!$property) {
             return $this->errorResponse(
                 message: 'Property not found',
@@ -116,7 +119,7 @@ class PropertyController extends Controller
             );
         }
         return $this->successResponse(
-            data: $property,
+            data: new PropertyResource($property),
             message: 'Property retrieved successfully'
         );
     }
@@ -204,7 +207,7 @@ class PropertyController extends Controller
         }
         $property->update($request->all());
         return $this->successResponse(
-            data: $property,
+            data: new PropertyResource($property),
             message: 'Property updated successfully'
         );
     }
@@ -272,7 +275,7 @@ class PropertyController extends Controller
     {
         $properties = Property::where('user_id', (int)Auth::id())->get();
         return $this->successResponse(
-            data: $properties,
+            data: new PropertyCollection($properties),
             message: 'Properties retrieved successfully'
         );
     }
@@ -377,7 +380,7 @@ class PropertyController extends Controller
             'image_url' => $imageUrl,
         ]);
         return $this->successResponse(
-            data: $property,
+            data: new PropertyResource($property),
             message: 'Image uploaded successfully',
             status: Response::HTTP_CREATED
         );
@@ -721,4 +724,5 @@ class PropertyController extends Controller
             message: 'Properties retrieved successfully'
         );
     }
+
 }
