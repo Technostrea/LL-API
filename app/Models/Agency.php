@@ -26,4 +26,32 @@ class Agency extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /*
+    Scope
+    */
+
+    // Scope to filter by agency name
+    public function scopeFilterByName($query, $name)
+    {
+        return $query->when($name, function ($query, $name) {
+            $query->where('agency_name', 'like', '%' . $name . '%');
+        });
+    }
+
+    // Scope to filter by email
+    public function scopeFilterByEmail($query, $email)
+    {
+        return $query->when($email, function ($query, $email) {
+            $query->where('email', 'like', '%' . $email . '%');
+        });
+    }
+
+    // Scope to filter by phone number
+    public function scopeFilterByPhone($query, $phone)
+    {
+        return $query->when($phone, function ($query, $phone) {
+            $query->where('phone', 'like', '%' . $phone . '%');
+        });
+    }
 }

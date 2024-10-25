@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyRequest;
+use App\Http\Resources\PropertyCollection;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,9 +31,18 @@ class PropertyController extends Controller
     )]
     public function index(): JsonResponse
     {
-        $properties = Property::all();
-        return $this->successResponse(
+        $properties = Property::filterByStatus(request('status'))
+            ->filterByPriceRange(request('min_price'), request('max_price'))
+            ->filterByCity(request('city'))
+            ->filterByType(request('property_type'))
+            ->filterByAreaRange(request('min_area'), request('max_area'))
+            ->nearLocation(request('latitude'), request('longitude'), request('radius'))
+            ->with('images')
+            ->paginate(request('limit', 10));
+
+        return $this->successResponseWithPagination(
             data: $properties,
+            resourceData: new PropertyCollection($properties),
             message: 'Properties retrieved successfully'
         );
     }
@@ -590,6 +600,7 @@ class PropertyController extends Controller
             message: 'Property removed from favorites successfully'
         );
     }
+
 
     #[
         OA\Get(

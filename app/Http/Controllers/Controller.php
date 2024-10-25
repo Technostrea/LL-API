@@ -93,6 +93,50 @@ abstract class Controller
     }
 
     /**
+     * Send a success response with or without pagination.
+     *
+     * @param array|object|null $data
+     * @param string|null $message
+     * @param int $status
+     * @param array|object|null $resourceData
+     *
+     * @return JsonResponse
+     */
+    public function successResponseWithPagination(
+        array|object|null $data,
+        string|null $message = null,
+        int $status = ResponseAlias::HTTP_OK,
+        array|object|null $resourceData = null
+    ): JsonResponse {
+
+        $response = [
+            'success' => true,
+            'message' => $message,
+            'data' => filled($resourceData) ?
+                $resourceData : ($data instanceof \Illuminate\Pagination\LengthAwarePaginator ? $data->items() : $data),
+        ];
+
+        if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            // Ajout des détails de la pagination
+            $response['pagination'] = [
+                'current_page' => $data->currentPage() || $resourceData->currentPage(),
+                'first_page_url' => $data->url(1),
+                'from' => $data->firstItem(),
+                'last_page' => $data->lastPage(),
+                'last_page_url' => $data->url($data->lastPage()),
+                'next_page_url' => $data->nextPageUrl(),
+                'path' => $data->path(),
+                'per_page' => $data->perPage(),
+                'prev_page_url' => $data->previousPageUrl(),
+                'to' => $data->lastItem(),
+                'total' => $data->total(),
+                'total_pages' => ceil($data->total() / $data->perPage()),
+            ];
+        }
+        return response()->json($response, $status);
+    }
+
+    /**
      * Send an error response.
      *
      * @param string $message
