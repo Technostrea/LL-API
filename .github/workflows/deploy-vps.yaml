@@ -3,32 +3,35 @@ name: Deploy Laravel API
 on:
   push:
     branches:
-      - dev  # Déclenche l'action sur les pushs vers la branche principale
+      - dev 
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      - name: Deploy using ssh-scp-ssh-pipelines
+        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Sync files to server
-        run: |
-          rsync -avz --exclude='.git*' --exclude='storage' --exclude='.env' ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
-
-      - name: Install dependencies
-        run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          host: ${{ secrets.SSH_HOST }}
+          port: 22  # Modifiez ce numéro de port si nécessaire
+          user: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          connect_timeout: 30s
+          first_ssh: |
+            echo "Preparing deployment on server"
+            cd ${{ secrets.DEPLOY_PATH }}
+            rm -rf ./*
+          scp: |
+            ./* ${{ secrets.DEPLOY_PATH }}
+          last_ssh: |
             cd ${{ secrets.DEPLOY_PATH }}
             composer install --no-interaction --prefer-dist --optimize-autoloader
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-          EOF
+
+      - name: Clean up local resources
+        run: |
+          echo "Clean up completed"
