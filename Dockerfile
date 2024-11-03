@@ -1,41 +1,31 @@
-# Étape 1 : Construction de l'application Laravel
-FROM php:8.3-fpm AS build
+# Utiliser une image PHP avec les extensions nécessaires pour Laravel
+FROM php:8.3-apache
 
-# Installer les dépendances système
+# Installer les dépendances nécessaires pour Laravel
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
     unzip \
-    libpq-dev  # Ajout de la bibliothèque PostgreSQL
-
-# Installer les extensions PHP requises
-RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd  # Remplacement par pdo_pgsql
+    libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copier les fichiers de l'application dans le répertoire de l'image
+COPY . /var/www/html
+
 # Définir le répertoire de travail
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Copier le code source de l'application Laravel
-COPY . .
+# Installer les dépendances Laravel
+RUN composer install --optimize-autoloader --no-dev
 
-# Installer les dépendances PHP
-RUN composer install --no-dev --optimize-autoloader
+# Définir les permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage
 
-# Générer la clé d'application Laravel et exécuter les migrations
-RUN php artisan key:generate
-RUN php artisan migrate --force
+# Exposer le port 80 pour accéder à l'application
+EXPOSE 80
 
-# Optimiser Laravel pour la production
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-CMD ["php-fpm"]
+# Lancer Apache en mode foreground
+CMD ["apache2-foreground"]
