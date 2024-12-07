@@ -1,31 +1,55 @@
-# Utiliser une image PHP avec les extensions nécessaires pour Laravel
-FROM php:8.3-apache
+# Stage 1: Build application
+FROM php:8.3-cli AS build
 
-# Installer les dépendances nécessaires pour Laravel
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+    zip unzip git libpng-dev libjpeg-dev libfreetype6-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pdo_pgsql gd mbstring xml zip opcache \
+    && docker-php-source delete \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Installer Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copier les fichiers de l'application dans le répertoire de l'image
-COPY . /var/www/html
-
-# Définir le répertoire de travail
+# Set working directory
 WORKDIR /var/www/html
 
-# Installer les dépendances Laravel
-RUN composer install --optimize-autoloader --no-dev
+# Copy application files
+COPY . .
 
-# Définir les permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Exposer le port 80 pour accéder à l'application
-EXPOSE 80
+# Stage 2: Run application
+FROM php:8.3-fpm
 
-# Lancer Apache en mode foreground
-CMD ["apache2-foreground"]
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpng-dev libjpeg-dev libfreetype6-dev libpq-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pdo_pgsql gd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy files from the build stage
+COPY --from=build /var/www/html /var/www/html
+
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Make the entrypoint script executable
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port
+EXPOSE 9000
+
+# Run php-fpm
+CMD ["php-fpm"]
